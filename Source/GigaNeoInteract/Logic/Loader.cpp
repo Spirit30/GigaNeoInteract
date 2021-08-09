@@ -87,6 +87,23 @@ void ALoader::LoadAllData()
 
 	if (FJsonSerializer::Deserialize(Reader, ProjectData))
 	{
+		const auto GlobalVariables = ProjectData->GetArrayField("GlobalVariables");
+		
+		for(const auto GlobalVariableItem : GlobalVariables)
+		{
+			const auto GlobalVariable = GlobalVariableItem->AsObject();
+			const auto Namespace = GlobalVariable->GetStringField("Namespace");
+			const auto Variables = GlobalVariable->GetArrayField("Variables");
+		
+			for(const auto VariableItem : Variables)
+			{
+				const auto Variable = VariableItem->AsObject();
+				const auto Key = Namespace + "." + Variable->GetStringField("Variable");
+				const bool Value = Variable->GetBoolField("Value");
+				FragmentsFlow->AddVariable(Key, Value);
+			}
+		}
+		
 		const auto Packages = ProjectData->GetArrayField("Packages");
 
 		if(Packages.Num() > 0)
@@ -98,6 +115,67 @@ void ALoader::LoadAllData()
 			{
 				const auto Model = ModelItem->AsObject();
 				const auto Type = Model->GetStringField("Type");
+
+				if(Type == "Instruction")
+				{
+					const auto Properties = Model->GetObjectField("Properties");
+
+					FInstructionData Instruction;
+
+					Instruction.Id = Properties->GetStringField("Id");
+
+					const auto Expression = Properties->GetStringField("Expression");
+					
+					FString LeftLable;
+					FString RightLable;
+					Expression.Split(" = ", &LeftLable, &RightLable);
+					const auto Value = RightLable == "true;";
+					
+					Instruction.GlobalVariableKey = LeftLable;
+					Instruction.GlobalVariableValue = Value;
+
+					const auto OutputPins = Properties->GetArrayField("OutputPins");
+					const auto OutputPin = OutputPins[0]->AsObject();
+					const auto Connections = OutputPin->GetArrayField("Connections");
+					const auto Connection = Connections[0]->AsObject();
+					const auto Target = Connection->GetStringField("Target");
+
+					Instruction.ToId = Target;
+					
+					FragmentsFlow->AddInstruction(Instruction);
+				}
+
+				if(Type == "Condition")
+				{
+					const auto Properties = Model->GetObjectField("Properties");
+
+					FConditionData Condition;
+
+					Condition.Id = Properties->GetStringField("Id");
+
+					const auto Expression = Properties->GetStringField("Expression");
+					
+					FString LeftLable;
+					FString RightLable;
+					Expression.Split(" == ", &LeftLable, &RightLable);
+					
+					Condition.GlobalVariableKey = LeftLable;
+
+					const auto OutputPins = Properties->GetArrayField("OutputPins");
+					const auto TrueOutputPin = OutputPins[0]->AsObject();
+					const auto TrueConnections = TrueOutputPin->GetArrayField("Connections");
+					const auto TrueConnection = TrueConnections[0]->AsObject();
+					const auto TrueTarget = TrueConnection->GetStringField("Target");
+					const auto FalseOutputPin = OutputPins[1]->AsObject();
+					const auto FalseConnections = FalseOutputPin->GetArrayField("Connections");
+					const auto FalseConnection = FalseConnections[0]->AsObject();
+					const auto FalseTarget = FalseConnection->GetStringField("Target");
+
+					Condition.TrueId = TrueTarget;
+					Condition.FalseId = FalseTarget;
+					
+					FragmentsFlow->AddCondition(Condition);
+				}
 				
 				if(Type == "FlowFragment")
 				{
