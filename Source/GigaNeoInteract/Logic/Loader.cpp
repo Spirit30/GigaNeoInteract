@@ -52,7 +52,7 @@ void ALoader::OnAccessKeysResponse(FHttpRequestPtr Request, FHttpResponsePtr Res
 {
 	if(EHttpResponseCodes::IsOk(Response->GetResponseCode()))
 	{
-		const auto JsonResponse = Response->GetContentAsString();
+		JsonResponse = Response->GetContentAsString();
 	
 		TSharedPtr<FJsonValue> AccessKeysData;
 		TSharedRef<TJsonReader<TCHAR>> Reader = TJsonReaderFactory<TCHAR>::Create(JsonResponse);
@@ -65,8 +65,7 @@ void ALoader::OnAccessKeysResponse(FHttpRequestPtr Request, FHttpResponsePtr Res
 			{
 				if(AccessKeyItem->AsString() == AccessKey)
 				{
-					Message.Empty();
-					LoadAllData();
+					FetchAllData();
 					return;
 				}
 			}
@@ -80,10 +79,42 @@ void ALoader::OnAccessKeysResponse(FHttpRequestPtr Request, FHttpResponsePtr Res
 	}
 }
 
+void ALoader::FetchAllData()
+{
+	const auto URL = "https://docs.google.com/document/export?format=txt&id=1kHDMpi0KLFF5mTpvJbEKrKcrccuF8U_eG3IXQmgPihc";
+	
+	const auto Http = &FHttpModule::Get();
+	const auto Request = Http->CreateRequest();
+	Request->OnProcessRequestComplete().BindUObject(this, &ALoader::OnLoadDataResponse);
+	Request->SetURL(URL);
+	Request->SetVerb("GET");
+	Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
+	Request->SetHeader("Content-Type", TEXT("application/json"));
+	Request->ProcessRequest();
+}
+
+void ALoader::OnLoadDataResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if(EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+	{
+		Message.Empty();
+		JsonResponse = Response->GetContentAsString();
+
+		//Workaround Google Docs first character problem.
+		JsonResponse.RemoveAt(0, 1);
+		
+		LoadAllData();
+	}
+	else
+	{
+		Message = HttpErrorText;
+	}
+}
+
 void ALoader::LoadAllData()
 {
 	TSharedPtr<FJsonObject> ProjectData;
-	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonResponse);
 
 	if (FJsonSerializer::Deserialize(Reader, ProjectData))
 	{
@@ -236,8 +267,12 @@ void ALoader::LoadAllData()
 				}
 			}
 		}
+
+		FragmentsFlow->StartFlow();
 	}
-	
-	FragmentsFlow->StartFlow();
+	else
+	{
+		Message = "Data should be valid Json.";
+	}	
 }
 

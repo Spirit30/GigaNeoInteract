@@ -15,7 +15,7 @@ class GIGANEOINTERACT_API ALoader : public AActor
 	GENERATED_BODY()
 	
 	public:
-
+	
 	UPROPERTY(EditAnywhere)
 	FString AccessKey;
 
@@ -29,11 +29,11 @@ class GIGANEOINTERACT_API ALoader : public AActor
 	FString HttpErrorText;
 
 	UPROPERTY(EditAnywhere)
-	FString Json;
-
-	UPROPERTY(EditAnywhere)
 	AFragmentsFlow* FragmentsFlow;
 
+	UPROPERTY(EditAnywhere)
+	FString JsonResponse;
+	
 	ALoader();
 
 	UFUNCTION(BlueprintCallable)
@@ -50,5 +50,7 @@ class GIGANEOINTERACT_API ALoader : public AActor
 
 	void SendAccessKeyRequest();
 	void OnAccessKeysResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void FetchAllData();
+	void OnLoadDataResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void LoadAllData();
 };
