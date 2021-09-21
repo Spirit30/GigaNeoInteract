@@ -1,6 +1,4 @@
 #include "FragmentsFlow.h"
-
-#include "AssetTypeCategories.h"
 #include "FileMediaSource.h"
 
 AFragmentsFlow::AFragmentsFlow()
