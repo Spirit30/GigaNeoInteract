@@ -39,8 +39,10 @@ TArray<FString> AFragmentsFlow::GetCurrentFragmentConnections()
 
 void AFragmentsFlow::OnChoice(FString ConnectionLable)
 {
-	for(const auto Connection : CurrentFragment.Connections)
+	for(int32 i = 0; i < CurrentFragment.Connections.Num(); ++i)
 	{
+		const auto Connection = CurrentFragment.Connections[i];
+		
 		if(Connection.Lable == ConnectionLable)
 		{
 			auto ToId = Connection.ToId;
