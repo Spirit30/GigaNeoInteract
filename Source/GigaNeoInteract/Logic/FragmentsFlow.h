@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "MediaPlayer.h"
 #include "GigaNeoInteract/Data/FConditionData.h"
 #include "GigaNeoInteract/Data/FInstructionData.h"
 #include "GigaNeoInteract/Data/FFragmentData.h"
@@ -18,6 +19,9 @@ class GIGANEOINTERACT_API AFragmentsFlow : public AActor
 	public:
 
 	UPROPERTY(EditAnywhere)
+	UMediaPlayer* Player;
+
+	UPROPERTY(EditAnywhere)
 	TArray<FInstructionData> Instructions;
 	
 	UPROPERTY(EditAnywhere)
@@ -28,6 +32,12 @@ class GIGANEOINTERACT_API AFragmentsFlow : public AActor
 
 	UFUNCTION(BlueprintCallable)
 	FString GetCurrentFragmentText() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsPlaying() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetRemainTime() const;
 
 	UFUNCTION(BlueprintCallable)
 	TArray<FString> GetCurrentFragmentConnections();

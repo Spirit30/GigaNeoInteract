@@ -8,7 +8,7 @@ public class GigaNeoInteract : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Http", "Json", "UMG" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Http", "Json", "UMG", "MediaAssets" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

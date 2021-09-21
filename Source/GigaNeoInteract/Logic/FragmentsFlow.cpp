@@ -1,5 +1,8 @@
 #include "FragmentsFlow.h"
 
+#include "AssetTypeCategories.h"
+#include "FileMediaSource.h"
+
 AFragmentsFlow::AFragmentsFlow()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,6 +26,16 @@ void AFragmentsFlow::AddCondition(FConditionData Condition)
 FString AFragmentsFlow::GetCurrentFragmentText() const
 {
 	return CurrentFragment.Text;
+}
+
+bool AFragmentsFlow::IsPlaying() const
+{
+	return Player->IsPlaying();
+}
+
+float AFragmentsFlow::GetRemainTime() const
+{
+	return Player->GetDuration().GetTotalSeconds() - Player->GetTime().GetTotalSeconds();
 }
 
 TArray<FString> AFragmentsFlow::GetCurrentFragmentConnections()
@@ -94,6 +107,29 @@ void AFragmentsFlow::StartFlow()
 void AFragmentsFlow::SetCurrentFragment(FFragmentData Fragment)
 {
 	CurrentFragment = Fragment;
+
+	const auto VideoPath = FPaths::GameDevelopersDir() + Fragment.DisplayName + ".wmv";
+
+	UFileMediaSource* MediaSource = NewObject<UFileMediaSource>();
+	MediaSource->SetFilePath(VideoPath);
+
+	UE_LOG(LogTemp, Log, TEXT("%s"), *VideoPath);
+	
+	if(Player->CanPlaySource(MediaSource))
+	{
+		Player->Play();
+		Player->OpenSource(MediaSource);
+	}
+	else
+	{
+		const auto VideoNotFoundError = "Video Not Found at: " + VideoPath;
+		UE_LOG(LogTemp, Error, TEXT("%s"), *VideoNotFoundError);
+
+		if(Player->IsPlaying())
+		{
+			Player->Pause();
+		}
+	}
 }
 
 void AFragmentsFlow::SetVariable(FString Key, bool Value)
